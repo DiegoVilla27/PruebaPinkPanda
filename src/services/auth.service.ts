@@ -2,6 +2,7 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import apiClient from '@/lib/api-client'
+import { useAuthStore } from '@/stores/auth.store'
 import type {
   AuthUser,
   LoginRequest,
@@ -9,6 +10,7 @@ import type {
   ResetPasswordRequest,
   ResetPasswordResponse,
 } from '@/types/auth.type'
+import STORAGE from '@/utils/storage'
 
 const MOCK_DELAY = 1500
 
@@ -27,7 +29,7 @@ const useGetMe = (): UseQueryResult<AuthUser> => {
       const response = await apiClient.get<AuthUser>('/auth/me')
       return response.data
     },
-    enabled: !!localStorage.getItem('access_token'),
+    enabled: !!STORAGE.get('TOKEN'),
     retry: false,
   })
 }
@@ -39,10 +41,8 @@ const useLogin = (): UseMutationResult<LoginResponse, Error, LoginRequest> => {
         username: data.username,
         password: data.password,
       })
+      useAuthStore.getState().setLoginData(response.data)
       return response.data
-    },
-    onSuccess: (data) => {
-      localStorage.setItem('access_token', data.accessToken)
     },
   })
 }
@@ -61,4 +61,8 @@ const useResetPassword = (): UseMutationResult<
   })
 }
 
-export { authKeys, useGetMe, useLogin, useResetPassword }
+const logoutSvc = (): void => {
+  useAuthStore.getState().logout()
+}
+
+export { authKeys, logoutSvc, useGetMe, useLogin, useResetPassword }

@@ -1,15 +1,14 @@
 import { HiOutlineLogout, HiOutlineUser } from 'react-icons/hi'
-import { Outlet, useNavigate } from 'react-router-dom'
 
+import usePrivateLayout from '@/components/layouts/private/hooks'
 import { Button } from '@/components/ui/button'
 
-const PrivateLayout = () => {
-  const navigate = useNavigate()
+interface IProps {
+  children: React.ReactNode
+}
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    void navigate('/auth')
-  }
+const PrivateLayout = ({ children }: IProps) => {
+  const { user, handleLogout } = usePrivateLayout()
 
   return (
     <div className="bg-background min-h-screen">
@@ -18,8 +17,20 @@ const PrivateLayout = () => {
           <h1 className="text-foreground text-lg font-semibold">Mi Aplicación</h1>
           <div className="flex items-center gap-3">
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <HiOutlineUser className="h-4 w-4" />
-              <span>Usuario</span>
+              {user?.image ? (
+                <img
+                  src={user.image}
+                  alt={`${user.firstName} ${user.lastName}`}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+              ) : (
+                <HiOutlineUser className="h-4 w-4" />
+              )}
+              <span>
+                {user?.firstName && user?.lastName
+                  ? `${user.firstName} ${user.lastName}`
+                  : 'Usuario'}
+              </span>
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <HiOutlineLogout className="mr-1 h-4 w-4" />
@@ -28,9 +39,7 @@ const PrivateLayout = () => {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl p-4">
-        <Outlet />
-      </main>
+      <main className="mx-auto max-w-7xl p-4">{children}</main>
     </div>
   )
 }
